@@ -1,5 +1,37 @@
 #include"标头.h"
 #include"windows.h"
+
+//函数声明
+void empty();//文件清空
+void database_interface();//数据库接口
+void init_duality(duality* tok);//初始化二元组，token
+void init_action_seq();//初始化动作序列
+bool traverse(char tra[100][15], char cmp[15]);//遍历终结符和非终结符表，查看是否存在要加入元素
+void init_table();//初始化分析表
+bool special(char cmp[10]);
+int table_prepare(char tra[100][15], char cmp[15]);//填表准备
+int table_get(char tra[100][15], char cmp[15]);//同上
+void init_product();//初始化产生式
+int special1(char cmp[10]);
+void fill_v(int cmp);
+void lookup_first(int i);//查first集
+void first(int x1, int i, int local);//求first集
+void follow(int i, int x1, int local);//求follow集
+void get_select(int n);//判断求first和follow
+void finish_table();//填分析表表
+void print_table();//输出分析表
+void init_stack(PSTACK begin);//初始化分析栈
+void push(PSTACK out, char* in);//压栈
+bool empty(PSTACK out);//判断栈是否为空
+char* pop(PSTACK out);//取栈顶元素
+void print_stack_out(PSTACK out);//打印分析栈出栈
+int print_Syntx_match(duality gg);//打印语法匹配
+void free_pop(PSTACK out);//弹栈
+void analysis(int m, int n, PSTACK out);//分析栈匹配，查看分析表
+void parsing(PSTACK begin);//语义分析
+bool val(char cmp[15]);//是否为界符
+void brief();
+
 char production[100][200];
 int table[100][100];
 char row[100][15];
@@ -15,6 +47,38 @@ char *keyword[18] = { "int","float","char","void","if","else","switch","case","f
 //界符表
 char *delimiters[18] = { ">=","<=","==","=",">","<","+","-","*","/","{","}",",",";","(",")" ,"[","]" };
 int gng;
+
+struct productnode {//产生式节点
+	type it;
+	char symbol[15];
+};
+
+struct product {//产生式数据结构
+	char vn[15];
+	productnode itself[10];
+};
+
+product c[100];
+
+struct duality {//二元式数据结构
+	style kind;
+	char value1[25];
+	int value2;
+};
+
+duality TOKEN[1000];//词法序列（二元式结构）
+
+typedef struct Node//栈中元素节点
+{
+	char element[15];
+	struct Node* pNext;
+}NODE, * PNODE;
+
+typedef struct Stack//堆栈，包含栈顶和栈底
+{
+	PNODE pTop;
+	PNODE pBottom;
+}STACK, * PSTACK;
 
 void database_interface() {//数据库接口
 	CoInitialize(NULL);
@@ -34,24 +98,41 @@ void database_interface() {//数据库接口
 	pConn->Execute("Insert into table(c1)Values (value1,value2)", &RecordsAffected, adCmdText);
 }
 
-struct productnode {//产生式节点
-	type it;
-	char symbol[15];
-};
-
-struct product {//产生式数据结构
-	char vn[15];
-	productnode itself[10];
-};
-
-product c[100];
-
-struct duality {//二元式数据结构
-	style kind;
-	char value1[25];
-	int value2;
-};
-duality TOKEN[1000];//词法序列（二元式结构）
+void empty() {//在开始运行前对所用文件进行清空重建
+	char r1[] = "word_sequence.dat";
+	char r2[] = "action.dat";
+	char r3[] = "optimize.dat";
+	char r4[] = "vall.dat";
+	char r5[] = "symbol_table.dat";
+	char r6[] = "four_elem.dat";
+	char r7[] = "four_element.dat";
+	char r8[] = "analysis_table.dat";
+	char r9[] = "func.dat";
+	char r10[] = "target.asm";
+	char r11[] = "end.dat";
+	remove(r1);
+	remove(r2);
+	remove(r3);
+	remove(r4);
+	remove(r5);
+	remove(r6);
+	remove(r7);
+	remove(r8);
+	remove(r9);
+	remove(r10);
+	remove(r11);
+	ofstream p1(r1);
+	ofstream p2(r2);
+	ofstream p3(r3);
+	ofstream p4(r4);
+	ofstream p5(r5);
+	ofstream p6(r6);
+	ofstream p7(r7);
+	ofstream p8(r8);
+	ofstream p9(r9);
+	ofstream p10(r10);
+	ofstream p11(r11);
+}
 
 void init_duality(duality*tok) {//初始化二元式，同时将变量表初始化
 	for (int i = 0; i < 1000; i++) {
@@ -60,6 +141,12 @@ void init_duality(duality*tok) {//初始化二元式，同时将变量表初始化
 		tok[i].value2 = 0;
 	}
 	return;
+}
+
+void init_action_seq() {//初始化动作序列
+	for (int i = 0; i < 1000; i++) {
+		strcpy_s(action_seq[i], "#");
+	}
 }
 
 bool traverse(char tra[100][15], char cmp[15]) {//遍历终结符和非终结符表，查看是否存在要加入元素
@@ -73,6 +160,54 @@ bool traverse(char tra[100][15], char cmp[15]) {//遍历终结符和非终结符表，查看是
 		}
 	}
 	return true;
+}
+
+void init_table() {//初始化分析表
+	int hang;
+	char cmp[15];
+	for (int i = 0; i < 100; i++) {
+		row[i][0] = '#';
+		line[i][0] = '#';
+	}
+	for (int i = 0;; i++) {
+		if (strcmp(production[i], "#") == 0) {
+			break;
+			hang = i;
+		}
+		int j = 0;
+		while (production[i][j++] != '%') {
+		}
+		strncpy_s(row[i], production[i], j - 1);
+	}
+	for (int i = 0;; i++) {
+		if (strcmp(production[i], "#") == 0) {
+			break;
+			hang = i;
+		}
+		int j = 0;
+		while (production[i][j++] != '%') {
+		}
+		while (production[i][j] != '#') {
+			int length = 0;
+			int length1 = j;
+			while ((production[i][j] != '&') && (production[i][j] != '|')) {
+				j++;
+				length++;
+			}
+			strncpy_s(cmp, production[i] + j - length, length);
+			j++;
+			if (traverse(line, cmp) && traverse(row, cmp)) {
+				strcpy_s(line[y++], cmp);
+			}
+		}
+		x = i;
+	}
+	for (int i = 0; i < 100; i++) {
+		for (int j = 0; j < 100; j++) {
+			table[i][j] = -1;
+		}
+	}
+	return;
 }
 
 bool special(char cmp[10]) {
@@ -119,6 +254,16 @@ int table_get(char tra[100][15], char cmp[15]) {//准备填表
 	return (i);
 }
 
+void init_product() {//初始化产生式结构
+	for (int i = 0; i < 100; i++) {
+		strcpy_s(c[i].vn, "#");
+		for (int j = 0; j < 10; j++) {
+			c[i].itself[j].it = def;
+			strcpy_s(c[i].itself[j].symbol, "#");
+		}
+	}
+}
+
 int special1(char cmp[10]) {
 	int i = 0;
 	while (strcmp(line[i], "#") != 0) {
@@ -131,54 +276,6 @@ int special1(char cmp[10]) {
 		exit(0);
 	}
 	return (i);
-}
-
-void init_table() {//初始化分析表
-	int hang;
-	char cmp[15];
-	for (int i = 0; i < 100; i++) {
-		row[i][0] = '#';
-		line[i][0] = '#';
-	}
-	for (int i = 0;; i++) {
-		if (strcmp(production[i], "#") == 0) {
-			break;
-			hang = i;
-		}
-		int j = 0;
-		while (production[i][j++] != '%') {
-		}
-		strncpy_s(row[i], production[i], j - 1);
-	}
-	for (int i = 0;; i++) {
-		if (strcmp(production[i], "#") == 0) {
-			break;
-			hang = i;
-		}
-		int j = 0;
-		while (production[i][j++] != '%') {
-		}
-		while (production[i][j] != '#') {
-			int length = 0;
-			int length1 = j;
-			while ((production[i][j] != '&')&&(production[i][j]!='|')) {
-				j++;
-				length++;
-			}
-			strncpy_s(cmp, production[i] + j-length, length);
-			j++;
-			if (traverse(line, cmp)&&traverse(row,cmp)) {
-				strcpy_s(line[y++], cmp);
-			}
-		}
-		x = i;
-	}
-	for (int i = 0; i <100; i++) {
-		for (int j = 0; j <100; j++) {
-			table[i][j] = -1;
-		}
-	}
-	return;
 }
 
 void fill_v(int cmp) {//填表
@@ -205,11 +302,9 @@ void lookup_first(int i) {//查first集合
 	return;
 }
 
-void follow(int i, int x1,int local);//提前声明follow函数
-
-void first(int x1,int i,int local) {//求first集合
+void first(int x1, int i, int local) {//求first集合
 	if (c[i].itself[0].it == nothing) {
-		follow(i, x1,local);
+		follow(i, x1, local);
 		return;
 	}
 	for (int i = 0; i < 10; i++) {
@@ -223,7 +318,7 @@ void first(int x1,int i,int local) {//求first集合
 	return;
 }
 
-void follow(int i,int x1,int local) {//求follow集合
+void follow(int i, int x1, int local) {//求follow集合
 	char cmp[15];
 	for (int i = 0; i < 10; i++) {
 		v[i] = -1;
@@ -243,20 +338,20 @@ void follow(int i,int x1,int local) {//求follow集合
 		}
 		if (s != -1) {
 			if (c[j].itself[s].it == vtk) {
-				s=special1(c[j].itself[s].symbol);
+				s = special1(c[j].itself[s].symbol);
 				fill_v(s);
 			}
-			else if(c[j].itself[s].it==vnk){
+			else if (c[j].itself[s].it == vnk) {
 				for (int n = 0; n < gng; n++) {
 					if (strcmp(c[j].itself[s].symbol, c[n].vn) == 0)
-						first(x1,n,local);
+						first(x1, n, local);
 				}
 			}
 			else {
-				if (strcmp(cmp,c[j].vn)==0) {
+				if (strcmp(cmp, c[j].vn) == 0) {
 					continue;
 				}
-				else follow(j,x1,local);
+				else follow(j, x1, local);
 			}
 		}
 	}
@@ -271,28 +366,18 @@ void follow(int i,int x1,int local) {//求follow集合
 	return;
 }
 
-void init_product() {//初始化产生式结构
-	for (int i = 0; i < 100; i++) {
-		strcpy_s(c[i].vn, "#");
-		for (int j = 0; j < 10; j++) {
-			c[i].itself[j].it = def;
-			strcpy_s(c[i].itself[j].symbol, "#");
-		}
-	}
-}
-
 void get_select(int n) {//判断为求first或follow集合
 	for (int i = 0; i < n; i++) {
 		int x1 = table_prepare(row, c[i].vn);
-		first(x1,i,i);
+		first(x1, i, i);
 	}
 }
 
 void finish_table() {//完成分析表
 	int o;
 	int m;
-	int n=0;
-	for (int i = 0; i <=x; i++) {
+	int n = 0;
+	for (int i = 0; i <= x; i++) {
 		int j = 0;
 		o = 0;
 		while (production[i][j++] != '%') {
@@ -300,28 +385,28 @@ void finish_table() {//完成分析表
 		strncpy_s(c[n].vn, production[i], j - 1);
 		m = j;
 		for (;; j++) {
-			if (production[i][j] =='&') {
+			if (production[i][j] == '&') {
 				strncpy_s(c[n].itself[o].symbol, production[i] + m, j - m);
-				m = j+1;
-				if (!traverse(row, c[n].itself[o].symbol)) {
-					c[n].itself[o].it = vnk;
-				}
-				else if(!traverse(line, c[n].itself[o].symbol)){
-					c[n].itself[o].it = vtk;
-				}
-				if (strcmp("$", c[n].itself[o].symbol) == 0)  c[n].itself[o].it = nothing; 
-				o++;
-			}
-			if (production[i][j] == '|') {
-				strncpy_s(c[n].itself[o].symbol, production[i] + m, j - m);
-				m = j+1;
+				m = j + 1;
 				if (!traverse(row, c[n].itself[o].symbol)) {
 					c[n].itself[o].it = vnk;
 				}
 				else if (!traverse(line, c[n].itself[o].symbol)) {
 					c[n].itself[o].it = vtk;
 				}
-				if (strcmp("$", c[n].itself[o].symbol) == 0)  c[n].itself[o].it = nothing; 
+				if (strcmp("$", c[n].itself[o].symbol) == 0)  c[n].itself[o].it = nothing;
+				o++;
+			}
+			if (production[i][j] == '|') {
+				strncpy_s(c[n].itself[o].symbol, production[i] + m, j - m);
+				m = j + 1;
+				if (!traverse(row, c[n].itself[o].symbol)) {
+					c[n].itself[o].it = vnk;
+				}
+				else if (!traverse(line, c[n].itself[o].symbol)) {
+					c[n].itself[o].it = vtk;
+				}
+				if (strcmp("$", c[n].itself[o].symbol) == 0)  c[n].itself[o].it = nothing;
 				n++;
 				o = 0;
 				strcpy_s(c[n].vn, c[n - 1].vn);
@@ -336,20 +421,64 @@ void finish_table() {//完成分析表
 	get_select(n);
 }
 
-typedef struct Node//栈中元素节点
-{
-	char element[15];
-	struct Node *pNext;
-}NODE, *PNODE;
+void print_table() {//打印产生式分析表
+	cout << "由产生式所得分析表如下" << endl;
+	cout << "                 ";
+	char* analysistab = "analysis_table.dat";
+	std::fstream selectout(analysistab, ios::out | ios::in);//打开代码文件
+	int i = 0;
+	if (!selectout) {
+		cout << "open error!";
+		getchar();
+		getchar();
+		exit(1);
+	}
+	selectout << "vn/vt ";
+	for (int i = 0; i <= y; i++) {
+		cout << line[i];
+		selectout << line[i] << " ";
+		int k = strlen(line[i]);
+		for (int g = 0; g < 7 - k; g++)cout << " ";
+	}
+	selectout << endl;
+	cout << endl;
+	for (int i = 0; i <= x; i++) {
+		cout << row[i];
+		selectout << row[i] << " ";
+		cout << "       ";
+		int k = strlen(row[i]);
+		for (int g = 0; g < 10 - k; g++)cout << " ";
+		for (int j = 0; j <= y; j++) {
+			if (table[i][j] + 1 >= 10) {
+				cout << table[i][j] + 1 << "     ";
+				selectout << table[i][j] + 1 << " ";
+			}
+			else {
+				cout << table[i][j] + 1 << "      ";
+				selectout << table[i][j] + 1 << " ";
+			}
+		}
+		cout << endl;
+		selectout << endl;
+	}
+	cout << "按下任意键以继续语法分析...";
+	getchar();
+	selectout.close();
+	return;
+}
 
-typedef struct Stack//堆栈，包含栈顶和栈底
-{
-	PNODE pTop;
-	PNODE pBottom;
-}STACK, *PSTACK;
+void init_stack(PSTACK begin) {//初始化分析栈
+	begin->pBottom = new NODE;
+	strcpy_s(begin->pBottom->element, "#");
+	begin->pBottom->pNext = NULL;
+	begin->pTop = new NODE;
+	begin->pTop->pNext = begin->pBottom;
+	strcpy_s(begin->pTop->element, row[0]);
+	return;
+}
 
-void push(PSTACK out, char*in) {//非终结符入分析栈
-	NODE *k = new NODE;
+void push(PSTACK out, char* in) {//非终结符入分析栈
+	NODE* k = new NODE;
 	strcpy_s(k->element, in);
 	k->pNext = out->pTop;
 	out->pTop = k;
@@ -369,23 +498,6 @@ char* pop(PSTACK out) {//获取栈顶元素用于比较
 		exit(1);
 	}
 	return out->pTop->element;
-}
-
-void free_pop(PSTACK out) {//栈顶元素出栈
-	PNODE clean = out->pTop;
-	out->pTop = out->pTop->pNext;
-	free(clean);
-	return;
-}
-
-void init_stack(PSTACK begin) {//初始化分析栈
-	begin->pBottom = new NODE;
-	strcpy_s(begin->pBottom->element, "#");
-	begin->pBottom->pNext = NULL;
-	begin->pTop = new NODE;
-	begin->pTop->pNext = begin->pBottom;
-	strcpy_s(begin->pTop->element, row[0]);
-	return;
 }
 
 void print_stack_out(PSTACK out) {//打印分析栈中元素出栈过程
@@ -410,21 +522,28 @@ int print_Syntx_match(duality gg) {//打印语法匹配过程
 	}
 	case Ch:
 	case St:
-	case C:cout << gg.value1;length=strlen(gg.value1); break;
+	case C:cout << gg.value1; length = strlen(gg.value1); break;
 	case default:cout << '#'; length = 1; break;
 	}
 	return length;
 }
 
-void analysis(int m,int n, PSTACK out) {//分析栈进行匹配，按分析表进行
+void free_pop(PSTACK out) {//栈顶元素出栈
+	PNODE clean = out->pTop;
+	out->pTop = out->pTop->pNext;
+	free(clean);
+	return;
+}
+
+void analysis(int m, int n, PSTACK out) {//分析栈进行匹配，按分析表进行
 	cout << "弹出";
 	print_stack_out(out);
 	free_pop(out);
 	int k = table[m][n];
 	int j = 0;
 	int end;
-	for(int i=0;;i++) {
-		if (strcmp(c[k].itself[i].symbol, "#") == 0) { 
+	for (int i = 0;; i++) {
+		if (strcmp(c[k].itself[i].symbol, "#") == 0) {
 			end = i;
 			break;
 		}
@@ -432,7 +551,7 @@ void analysis(int m,int n, PSTACK out) {//分析栈进行匹配，按分析表进行
 	for (int i = end - 1; i >= 0; i--) {
 		if (c[k].itself[i].it == nothing)
 		{
-			cout << "$"; 
+			cout << "$";
 			j++;
 			break;
 		}
@@ -447,15 +566,15 @@ void analysis(int m,int n, PSTACK out) {//分析栈进行匹配，按分析表进行
 void parsing(PSTACK begin) {//语法分析主体程序
 	int i = 0;
 	int gh = 1;
-	while ((TOKEN[i] .kind!= default) || (strcmp(begin->pTop->element,"#")!=0)) {//当分析栈与待分析序列都为结束符时结束语法分析
-	    char*cmp = pop(begin);
-		if ((strcmp(begin->pTop->element, "if") == 0) | (strcmp(begin->pTop->element, "while") == 0) | (strcmp(begin->pTop->element, "else") == 0) | (strcmp(begin->pTop->element, "=") == 0) | (strcmp(begin->pTop->element, "+") == 0) | (strcmp(begin->pTop->element, "-") == 0) | (strcmp(begin->pTop->element, "*") == 0) | (strcmp(begin->pTop->element, "/") == 0) | (strcmp(begin->pTop->element, "id") == 0) | (strcmp(begin->pTop->element, "number") == 0) | (strcmp(begin->pTop->element, "ch") == 0) | (strcmp(begin->pTop->element, "we") == 0) | (strcmp(begin->pTop->element, "do") == 0) | (strcmp(begin->pTop->element, "ie") == 0)|(strcmp(begin->pTop->element, ">")==0) | (strcmp(begin->pTop->element, "<") == 0) | (strcmp(begin->pTop->element, "==") == 0) | (strcmp(begin->pTop->element, ">=") == 0) | (strcmp(begin->pTop->element, "<=") == 0) | (strcmp(begin->pTop->element, "return") == 0)|(strcmp(begin->pTop->element,"cout")==0)|(strcmp(begin->pTop->element,"cin")==0)){
+	while ((TOKEN[i].kind != default) || (strcmp(begin->pTop->element, "#") != 0)) {//当分析栈与待分析序列都为结束符时结束语法分析
+		char* cmp = pop(begin);
+		if ((strcmp(begin->pTop->element, "if") == 0) | (strcmp(begin->pTop->element, "while") == 0) | (strcmp(begin->pTop->element, "else") == 0) | (strcmp(begin->pTop->element, "=") == 0) | (strcmp(begin->pTop->element, "+") == 0) | (strcmp(begin->pTop->element, "-") == 0) | (strcmp(begin->pTop->element, "*") == 0) | (strcmp(begin->pTop->element, "/") == 0) | (strcmp(begin->pTop->element, "id") == 0) | (strcmp(begin->pTop->element, "number") == 0) | (strcmp(begin->pTop->element, "ch") == 0) | (strcmp(begin->pTop->element, "we") == 0) | (strcmp(begin->pTop->element, "do") == 0) | (strcmp(begin->pTop->element, "ie") == 0) | (strcmp(begin->pTop->element, ">") == 0) | (strcmp(begin->pTop->element, "<") == 0) | (strcmp(begin->pTop->element, "==") == 0) | (strcmp(begin->pTop->element, ">=") == 0) | (strcmp(begin->pTop->element, "<=") == 0) | (strcmp(begin->pTop->element, "return") == 0) | (strcmp(begin->pTop->element, "cout") == 0) | (strcmp(begin->pTop->element, "cin") == 0)) {
 			strcpy_s(action_seq[gh++], begin->pTop->element);
 		}
 		char cc[15];
 		int m = table_get(row, begin->pTop->element);
 		int n;
-		switch(TOKEN[i].kind) {
+		switch (TOKEN[i].kind) {
 		case I: {
 			if (strcmp(TOKEN[i].value1, "") == 0) {
 				n = y;
@@ -466,15 +585,15 @@ void parsing(PSTACK begin) {//语法分析主体程序
 		case P:strcpy_s(cc, delimiters[TOKEN[i].value2 - 1]); n = table_get(line, cc); break;
 		case K:strcpy_s(cc, keyword[TOKEN[i].value2 - 1]); n = table_get(line, cc); break;
 		case Ch:n = table_get(line, "ch"); break;
-		case St:n=table_get(line,"string"); break;
-		case C:n = table_get(line,"number"); break;
+		case St:n = table_get(line, "string"); break;
+		case C:n = table_get(line, "number"); break;
 		case default:n = table_get(line, "#"); break;
 		}
-		if (m>=0&& m<=x&&n>=0&&n<=y)
+		if (m >= 0 && m <= x && n >= 0 && n <= y)
 		{
-			analysis(m,n, begin);
+			analysis(m, n, begin);
 		}
-		else if(strcmp(begin->pTop->element,line[n])==0) {
+		else if (strcmp(begin->pTop->element, line[n]) == 0) {
 			cout << "弹出";
 			print_stack_out(begin);
 			int rab = print_Syntx_match(TOKEN[i++]);
@@ -487,7 +606,7 @@ void parsing(PSTACK begin) {//语法分析主体程序
 			getchar();
 			exit(1);
 		}
-		cout << "当前栈顶元素为:" ;
+		cout << "当前栈顶元素为:";
 		print_stack_out(begin);
 		cout << "当前分析字母为：";
 		print_Syntx_match(TOKEN[i]);
@@ -497,52 +616,6 @@ void parsing(PSTACK begin) {//语法分析主体程序
 		}
 		cout << endl;
 	}
-	return;
-}
-
-void print_table() {//打印产生式分析表
-	cout << "由产生式所得分析表如下"<<endl;
-	cout << "                 ";
-	char *analysistab = "analysis_table.dat";
-	std::fstream selectout(analysistab, ios::out | ios::in);//打开代码文件
-	int i = 0;
-	if (!selectout) {
-		cout << "open error!";
-		getchar();
-		getchar();
-		exit(1);
-	}
-	selectout << "vn/vt ";
-	for (int i = 0; i <= y; i++) {
-		cout << line[i];
-		selectout << line[i]<<" ";
-		int k = strlen(line[i]);
-		for (int g = 0; g < 7 - k; g++)cout << " ";
-	}
-	selectout << endl;
-	cout << endl;
-	for (int i = 0; i <= x; i++) {
-		cout << row[i];
-		selectout << row[i]<<" ";
-		cout << "       ";
-		int k = strlen(row[i]);
-		for (int g = 0; g < 10 - k; g++)cout << " ";
-		for (int j = 0; j <= y; j++) {
-			if (table[i][j] + 1 >= 10) {
-				cout << table[i][j] + 1 << "     ";
-				selectout << table[i][j] + 1<<" ";
-			}
-			else {
-				cout << table[i][j] + 1 << "      ";
-				selectout << table[i][j] + 1<<" ";
-			}
-		}
-		cout << endl;
-		selectout << endl;
-	}
-	cout << "按下任意键以继续语法分析...";
-	getchar();
-	selectout.close();
 	return;
 }
 
@@ -600,48 +673,6 @@ void brief() {
 		if (strcmp(action_seq[i], "#") == 0)break;
 		cout << action_seq[i++] << endl;
 	}
-}
-
-void init_action_seq(){//初始化动作序列
-	for (int i = 0; i < 1000; i++) {
-		strcpy_s(action_seq[i], "#");
-	}
-}
-
-void empty() {//在开始运行前对所用文件进行清空重建
-	char r1[] = "wordsequence.dat";
-	char r2[] = "action.dat";
-	char r3[] = "optimize.dat";
-	char r4[] = "vall.dat";
-	char r5[] = "symboltable.dat";
-	char r6[] = "fourelem.dat";
-	char r7[] = "fourelement.dat";
-	char r8[] = "analysis_table.dat";
-	char r9[] = "func.dat";
-	char r10[] = "target.asm";
-	char r11[] = "end.dat";
-	remove(r1);
-	remove(r2);
-	remove(r3);
-	remove(r4);
-	remove(r5);
-	remove(r6);
-	remove(r7);
-	remove(r8);
-	remove(r9);
-	remove(r10);
-	remove(r11);
-	ofstream p1(r1);
-	ofstream p2(r2);
-	ofstream p3(r3);
-	ofstream p4(r4);
-	ofstream p5(r5);
-	ofstream p6(r6);
-	ofstream p7(r7);
-	ofstream p8(r8);
-	ofstream p9(r9);
-	ofstream p10(r10);
-	ofstream p11(r11);
 }
 
 int main() {//主函数，用于读入词法分析完成得到的单词序列
