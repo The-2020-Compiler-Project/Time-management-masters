@@ -1,4 +1,4 @@
-#include"Header.h"
+#include"标头.h"
 enum Kind { I, C, K, P, Ch, St, error };/*二元式种类//style*/
 static char *keyword[18] = { "int","float","char","void","if","else","switch","case","for","do","while","continue","break","default","sizeof","return" ,"cout","cin"};/*关键字表*/
 static char *delimiters[18] = { ">=","<=","==","=",">","<","+","-","*","/","{","}",",",";","(",")" ,"[","]" };/*界符表*/
@@ -354,7 +354,7 @@ void Begin_SYNBL() {
         case K:outfile >> Token[i++].value2; break;
         case I: {
             outfile >> Token[i++].value1;
-            tableadd(var, Token[i-1].value1,i-1);
+            ADD_Identifier(var, Token[i-1].value1,i-1);
             break;
         }
         case Ch:

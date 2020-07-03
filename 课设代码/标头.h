@@ -11,9 +11,9 @@ using namespace std;
 char* tokenaly();
 void recursive();
 void translate2();
-void analysis_table();
 void translate1();
 void optimize_s();
-bool traverse(char tra[100][15], char cmp[15]);/*±éÀúÖÕ½á·ûºÍ·ÇÖÕ½á·û±í£¬²é¿´ÊÇ·ñ´æÔÚÒª¼ÓÈëÔªËØ*/
+bool traverse(char tra[100][15], char cmp[15]);/*ï¿½ï¿½ï¿½ï¿½ï¿½Õ½ï¿½ï¿½ï¿½Í·ï¿½ï¿½Õ½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½é¿´ï¿½Ç·ï¿½ï¿½ï¿½ï¿½Òªï¿½ï¿½ï¿½ï¿½Ôªï¿½ï¿½*/
 void targetcode();
 void range(char c[30]);
+void Begin_SYNBL();
