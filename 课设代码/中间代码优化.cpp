@@ -26,6 +26,10 @@ struct DAG {//DAG图
 	struct DAG_node ide;
 };
 
+void opt_process(int low, int up);//中间代码优化主要程序
+void div_basicblock();//划分基本块
+void optimize_s();
+
 void opt_process(int low, int up) {//中间代码优化主要程序
 	DAG dag_graph[100];//DAG图
 	DAG *temp_dag1[100];//临时变量DAG
