@@ -2,7 +2,7 @@
 #include"windows.h"
 
 //函数声明
-void empty();//文件清空
+/*void empty();//文件清空
 void database_interface();//数据库接口
 void init_duality(duality* tok);//初始化二元组，token
 void init_action_seq();//初始化动作序列
@@ -30,8 +30,8 @@ void free_pop(PSTACK out);//弹栈
 void analysis(int m, int n, PSTACK out);//分析栈匹配，查看分析表
 void parsing(PSTACK begin);//语义分析
 bool val(char cmp[15]);//是否为界符
-void brief();
-
+void brief();*/
+void follow(int i, int x1, int local);//求follow集
 char production[100][200];
 int table[100][100];
 char row[100][15];
@@ -106,7 +106,7 @@ void empty() {//在开始运行前对所用文件进行清空重建
 	char r5[] = "symbol_table.dat";
 	char r6[] = "four_elem.dat";
 	char r7[] = "four_element.dat";
-	char r8[] = "analysis_table.dat";
+	char r8[] = "Begin_SYNBL.dat";
 	char r9[] = "func.dat";
 	char r10[] = "target.asm";
 	char r11[] = "end.dat";
@@ -424,7 +424,7 @@ void finish_table() {//完成分析表
 void print_table() {//打印产生式分析表
 	cout << "由产生式所得分析表如下" << endl;
 	cout << "                 ";
-	char* analysistab = "analysis_table.dat";
+	char* analysistab = "Begin_SYNBL.dat";
 	std::fstream selectout(analysistab, ios::out | ios::in);//打开代码文件
 	int i = 0;
 	if (!selectout) {
@@ -750,7 +750,7 @@ int main() {//主函数，用于读入词法分析完成得到的单词序列
 	action.close();//关闭动作序列文件
 	cout << "结束运行，语法分析无错误,按下任意键以进入符号表构建";
 	getchar();
-	analysis_table();//填符号表
+	Begin_SYNBL();//填符号表
 	return 0;
 }
 
