@@ -5,12 +5,55 @@ char str[10000];
 char strc[]="text.cpp";
 char ch;
 char token[25];
-char know[30]="wordsequence.dat";
+char know[30]="word_sequence.dat";
 enum style{I,C,K,P,Ch,St,def};
 static char *keyword[18] = { "int","float","char","void","if","else","switch","case","for","do","while","continue","break","default","sizeof","return","cout","cin" };//关键字表
 static char *delimiters[18] = { ">=","<=","==","=",">","<","+","-","*","/","{","}",",",";","(",")" ,"[","]"};//界符表
 char variate[16][10] = {};//变量表t
 int serial = 0;
+
+
+void prep(char ch) {//对源程序预处理
+	int state = 1;
+	int cycle = 0;
+	int back;
+	if (ch == '/') {//出现'/'则准备过滤注释
+		state = 2;
+		back = location1 - 1;
+	}
+	else {
+		location1--;
+		return;
+	}
+	ch = str[location1++];
+	while (ch != EOF) {
+		switch (state) {
+		case 2:
+			if (ch == '*')/*出现'*'则认为已进入注释字段*/
+				state = 3;
+			else {
+				state = 1;
+				cycle = 1;
+			}
+			break;
+		case 3:if (ch == '*')/*再一次出现'*'则准备跳出注释字段*/
+			state = 4; break;
+		case 4:if (ch == '/')/*再一次出现'/'则跳出注释字段，否则继续进行注释过滤*/
+			state = 5;
+			   else
+			state = 4; break;
+		case 5:cycle = 1;
+		}
+		if (cycle == 1)
+			break;
+		ch = str[location1++];
+	}
+	if (state == 1) {
+		location1 = back;
+	}
+	return;
+}
+
 
 static struct two_elements {//二元式数据结构
 	style kind;
@@ -43,7 +86,7 @@ int is_keyword(char*cmp) {
 	return 0;
 }
 
-void printf_token(two_elements*token) {
+void printf(two_elements*token) {
 	//输出单词序列
 	cout << "类型                 值";
 	cout << "            类型                 值";
@@ -60,7 +103,7 @@ void printf_token(two_elements*token) {
 		case I:cout << "标识符           " << token[i].value1; j=strlen(token[i].value1); break;
 		case C:cout << "常数             ";
 			sscanf_s(token[i].value1, "%f", &number);
-			printf_token("%g", number);
+			printf("%g", number);
 			for (int f = 0;; f++) {
 				if (token[i].value1[f] == '\0')break;
 				if (token[i].value1[f] == '0'&&token[i].value1[f + 1] == '0'&&token[i].value1[f + 2] == '0')break;
@@ -92,46 +135,7 @@ void add_to_varT(char*cmp) {//加入变量表
 	return;
 }
 
-void prep(char ch) {//对源程序预处理
-	int state = 1;
-	int cycle = 0;
-	int back;
-	if (ch == '/') {//出现'/'则准备过滤注释
-		state = 2;
-		back = location1 - 1;
-	}
-	else {
-		location1--;
-		return;
-	}
-	ch = str[location1++];
-	while (ch != EOF) {
-		switch (state) {
-		case 2:
-			if (ch == '*')/*出现'*'则认为已进入注释字段*/
-				state = 3;
-			else {
-				state = 1;
-				cycle = 1;
-			}
-			break;
-		case 3:if (ch == '*')/*再一次出现'*'则准备跳出注释字段*/
-			state = 4; break;
-		case 4:if (ch == '/')/*再一次出现'/'则跳出注释字段，否则继续进行注释过滤*/
-			state = 5;
-			   else
-				   state = 4; break;
-		case 5:cycle = 1;
-		}
-		if (cycle == 1)
-			break;
-		ch = str[location1++];
-	}
-	if (state == 1) {
-		location1 = back;
-	}
-	return;
-}
+
 
 static void scanner() {//词法扫描
 	int i = 0;
@@ -286,7 +290,7 @@ char* tokenaly() {
 	while (str[location1] != NULL) {
 		scanner();
 	}
-	printf_token(TOKEN);
+	printf(TOKEN);
 	char* path = know; // 你要创建文件的路径
 	ofstream fout(path);
 	for (int i = 0; i < serial; i++) {/*输出类型值和单词序列*/
