@@ -13,7 +13,7 @@ int  main(int g)
 	cin >> i;
 	r = 1 + 1.0;
 	s = a*d;
-	lo = a / d;
+	lo = a / d; 
         s=a/d;
 	if (a <= d)
 	{
@@ -26,6 +26,7 @@ int  main(int g)
 		d = a;
 		a = q;
 	}
+	cout << d;
 	while (a > d) {
 		d = a + 1;
 	}
@@ -36,5 +37,6 @@ int  main(int g)
 	}
 	cout << total;
 	i=0;
+	cout << y;
 	return 0;
 }
