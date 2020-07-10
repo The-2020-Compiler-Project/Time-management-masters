@@ -243,7 +243,7 @@ void targetlanpro() {//生成目标代码
 		}
 	}
 	act << "string  DB 'PLEASE INPUT:','$'" << endl;
-	act << "int     DW 1000 DUP(0)" << endl;
+	act << "zheng   DW 1000 DUP(0)" << endl;
 	act << "float   DD 1000 DUP(0)" << endl;
 	act << "bool    DB 1000 DUP(0)" << endl;
 	act << "char    DB 1000 DUP(0)" << endl;
@@ -518,22 +518,33 @@ void targetlanpro() {//生成目标代码
 			act << "        MOV CL,16" << endl;
 			act << "show" << showid << ':' << endl;
 			act << "        SUB CL,04" << endl;
-			act << "        MOV AX,"<<action[i].id3 << endl;
-			act << "        SHR AX,CL" << endl;
-			act << "        AND AX,000FH" << endl;
-			act << "        MOV DL,AL" << endl;
-			act << "        CMP DL,10" << endl;
-			act << "        JB  hex"<<hexid << endl;
-			act << "        ADD DL,07H" << endl;
-			act << "hex" << hexid++ <<':'<< endl;
-			act << "        ADD DL,30H" << endl;
-			act << "        MOV AH,02H" << endl;
-			act << "        INT 21H" << endl;
-			act << "        CMP CL,0" << endl;
-			act << "        JNE show" << showid++<<endl;
-			act << "        MOV DL,'H'" << endl;
-			act << "        MOV AH,02H" << endl;
-			act << "        INT 21H" << endl;
+			for (int m = 0;; m++) {
+				if (strcmp(st1[m].id, "#") == 0)break;
+				if (strcmp(action[i].id3, st1[m].id) == 0&&st1[m].s1==2) {
+					act << "        MOV DL," << action[i].id3 << endl;
+					act << "        MOV AH,02H" << endl;
+					act << "        INT 21H" << endl;
+
+				}
+				else if(strcmp(action[i].id3, st1[m].id) == 0) {
+					act << "        MOV AX," << action[i].id3 << endl;
+					act << "        SHR AX,CL" << endl;
+					act << "        AND AX,000FH" << endl;
+					act << "        MOV DL,AL" << endl;
+					act << "        CMP DL,10" << endl;
+					act << "        JB  hex" << hexid << endl;
+					act << "        ADD DL,07H" << endl;
+					act << "hex" << hexid++ << ':' << endl;
+					act << "        ADD DL,30H" << endl;
+					act << "        MOV AH,02H" << endl;
+					act << "        INT 21H" << endl;
+					act << "        CMP CL,0" << endl;
+					act << "        JNE show" << showid++ << endl;
+					act << "        MOV DL,'H'" << endl;
+					act << "        MOV AH,02H" << endl;
+					act << "        INT 21H" << endl;
+				}
+			}
 			act << "        MOV DL,0AH" << endl;
 			act << "        MOV AH,02H" << endl;
 			act << "        INT 21H" << endl;
