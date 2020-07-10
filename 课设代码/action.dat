@@ -59,6 +59,8 @@ id
 =
 id
 ie
+cout
+id
 while
 id
 >
@@ -93,6 +95,8 @@ id
 id
 =
 number
+cout
+id
 return
 number
 #
